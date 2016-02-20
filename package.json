@@ -1,0 +1,22 @@
+{
+  "name": "SKCDNSync",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "DEBUG=* node index"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "azure-storage": "^0.8.0",
+    "debug": "^2.2.0",
+    "lodash": "^4.5.0",
+    "superagent": "^1.7.2"
+  },
+  "devDependencies": {
+    "eslint": "^2.2.0"
+  }
+}
