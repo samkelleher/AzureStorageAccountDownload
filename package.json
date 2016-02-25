@@ -1,14 +1,13 @@
 {
-  "name": "SKCDNSync",
+  "name": "AzureDownload",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "DEBUG=* node index"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sam Kelleher",
   "license": "ISC",
   "dependencies": {
     "azure-storage": "^0.8.0",
