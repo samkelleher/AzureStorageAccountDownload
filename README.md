@@ -4,6 +4,18 @@
 ## Getting Started
 After cloning this repository run `npm install --production` to grab its dependencies.
 
+## Set Config information
+To keep the container credentials out of source code, they are kept in a seperate `config.json` file:
+
+```
+{
+  "storageAccountName": "<YOUR-ACCOUNT-NAME-HERE>",
+  "storageAccountKey": "<YOUR-KEY-HERE>"
+}
+```
+
+Add your account information to this file, once set, you can begin the sync program.
+
 ```
 $ npm start
 ```
