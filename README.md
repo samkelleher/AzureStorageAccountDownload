@@ -1,6 +1,8 @@
 # Azure Blob Download Utility
 > Node utility that will download all files in a Azure hosted blob storage account.
 
+This is a litte dev utiility that will connect to an Azure container, and download a mirror of it to your local machine. Handy during development of an image store for example so you can work offline.
+
 ## Getting Started
 After cloning this repository run `npm install --production` to grab its dependencies.
 
