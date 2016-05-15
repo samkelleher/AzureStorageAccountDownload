@@ -6,6 +6,9 @@
   "scripts": {
     "start": "DEBUG=* node index"
   },
+  "engines": {
+    "node": ">=6"
+  },
   "keywords": [],
   "author": "Sam Kelleher",
   "license": "ISC",

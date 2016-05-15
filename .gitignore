@@ -1,3 +1,6 @@
+# Confidential Config file
+config.json
+
 # Dependency directory
 node_modules
 
