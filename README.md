@@ -12,15 +12,26 @@ To keep the container credentials out of source code, they are kept in a seperat
 ```
 {
   "storageAccountName": "<YOUR-ACCOUNT-NAME-HERE>",
-  "storageAccountKey": "<YOUR-KEY-HERE>"
+  "storageAccountKey": "<YOUR-KEY-HERE>",
+  "storeDirectory": "< PATH TO LOCAL STORAGE DIRECTORY (for example '../AzureContainers/') >"
 }
 ```
+
+In your store directory, create folders here manually that match the names of folders you want to download. For example,
+say your storage account called `Colors` has a container with names `Red`, `Green`, and `Blue`.
+
+You would create in your store directory, a folder for `Colors`, inside of that, a folder called `Red`. When you run the tool
+the contents of the `Red` folder will be downloaded locally, while the `Green` and `Blue` folders will be ignored.
+
+If you then decided you also want the `Green` folder, you simply create it.
 
 Add your account information to this file, once set, you can begin the sync program.
 
 ```
 $ npm start
 ```
+
+Each time you run this utility, a full sync will take place. So if you have a lot of files can take some time.
 
 ## User Story
 I have a CMS website that stores user uploaded images to a storage

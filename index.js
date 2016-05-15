@@ -37,7 +37,7 @@ function beginSync(config) {
 
             return new Promise(function (resolve, reject) {
 
-                var storeDirectory = `../AzureContainers/${config.storageAccountName}/${containerName}/`;
+                var storeDirectory = `${config.storeDirectory}${config.storageAccountName}/${containerName}/`;
 
                 fs.readdir(storeDirectory, function (err, files) {
                     if (err) {

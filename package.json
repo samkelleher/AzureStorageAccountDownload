@@ -1,7 +1,7 @@
 {
   "name": "AzureDownload",
   "version": "1.0.0",
-  "description": "",
+  "description": "A utility to download an Azure container to your machine.",
   "main": "index.js",
   "scripts": {
     "start": "DEBUG=* node index"
