@@ -13,7 +13,8 @@ To keep the container credentials out of source code, they are kept in a seperat
 {
   "storageAccountName": "<YOUR-ACCOUNT-NAME-HERE>",
   "storageAccountKey": "<YOUR-KEY-HERE>",
-  "storeDirectory": "< PATH TO LOCAL STORAGE DIRECTORY (for example '../AzureContainers/') >"
+  "storeDirectory": "< PATH TO LOCAL STORAGE DIRECTORY (for example '../AzureContainers/') >",
+  "logDownloadsOnly": true
 }
 ```
 
