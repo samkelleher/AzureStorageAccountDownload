@@ -4,7 +4,7 @@
 This is a litte dev utiility that will connect to an Azure container, and download a mirror of it to your local machine. Handy during development of an image store for example so you can work offline.
 
 ## Getting Started
-After cloning this repository run `npm install --production` to grab its dependencies.
+After cloning this repository run `yarn install --production` to grab its dependencies.
 
 ## Set Config information
 To keep the container credentials out of source code, they are kept in a seperate `config.json` file:
@@ -29,7 +29,7 @@ If you then decided you also want the `Green` folder, you simply create it.
 Add your account information to this file, once set, you can begin the sync program.
 
 ```
-$ npm start
+$ yarn start
 ```
 
 Each time you run this utility, a full sync will take place. So if you have a lot of files can take some time.
