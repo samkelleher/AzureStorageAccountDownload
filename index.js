@@ -1,29 +1,28 @@
 'use strict';
 
-var azure = require('azure-storage');
-var debug = require('debug')('Controller');
-var debugFile = require('debug')('RemoteFile');
-var debugDirectory = require('debug')('Directory');
-var debugLocalFile = require('debug')('LocalFile');
-var fs = require('fs');
-var path = require('path');
-var _ = require('lodash');
+const azure = require('azure-storage');
+const debug = require('debug')('Controller');
+const debugFile = require('debug')('RemoteFile');
+const debugDirectory = require('debug')('Directory');
+const debugLocalFile = require('debug')('LocalFile');
+const fs = require('fs');
+const path = require('path');
+const _ = require('lodash');
 
-function getConfig() {
+async function getConfig() {
     const configFileName = 'config.json';
     if (!fs.existsSync(configFileName)) {
-        return Promise.reject(`The config file '${configFileName}' was not found.`);
+        throw new Error(`The config file '${configFileName}' was not found.`);
     }
 
-    const config = JSON.parse(
-        fs.readFileSync(configFileName)
-    );
+    const file = fs.readFileSync(configFileName);
+    const config = JSON.parse(file);
 
     if (!config || !config.storageAccountName || !config.storageAccountKey) {
-        return Promise.reject(`The config file '${configFileName}' has missing data.`);
+        throw new Error(`The config file '${configFileName}' has missing data.`);
     }
 
-    return Promise.resolve(config);
+    return config;
 }
 
 function beginSync(config) {
@@ -192,12 +191,11 @@ function beginSync(config) {
     });
 }
 
-getConfig()
-    .then((config) => {
+(async function() {
+    try {
+        const config = await getConfig();
         beginSync(config);
-    })
-    .catch((e) => {
-        debug(e)
-    });
-
-
+    } catch (e) {
+        debug(e);
+    }
+})();
