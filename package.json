@@ -14,12 +14,12 @@
   "author": "Sam Kelleher",
   "license": "ISC",
   "dependencies": {
-    "azure-storage": "^2.0.0",
-    "debug": "^2.6.1",
+    "azure-storage": "^2.1.0",
+    "debug": "^2.6.6",
     "lodash": "^4.15.0",
-    "superagent": "^3.5.0"
+    "superagent": "^3.5.2"
   },
   "devDependencies": {
-    "eslint": "^3.16.1"
+    "eslint": "^3.19.0"
   }
 }
