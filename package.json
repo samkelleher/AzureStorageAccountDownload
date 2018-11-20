@@ -4,7 +4,8 @@
   "description": "A utility to download an Azure container to your machine.",
   "main": "index.js",
   "scripts": {
-    "start": "DEBUG=* node index"
+    "start": "DEBUG=* node index",
+    "lint": "eslint index.js"
   },
   "private": true,
   "engines": {
@@ -14,12 +15,11 @@
   "author": "Sam Kelleher",
   "license": "ISC",
   "dependencies": {
-    "azure-storage": "^2.5.0",
-    "debug": "^3.0.1",
-    "lodash": "^4.15.0",
-    "superagent": "^3.6.0"
+    "azure-storage": "^2.10.2",
+    "debug": "^4.1.0",
+    "superagent": "^4.0.0"
   },
   "devDependencies": {
-    "eslint": "^4.6.1"
+    "eslint": "^5.9.0"
   }
 }

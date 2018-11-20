@@ -6,8 +6,6 @@ const debugFile = require('debug')('RemoteFile');
 const debugDirectory = require('debug')('Directory');
 const debugLocalFile = require('debug')('LocalFile');
 const fs = require('fs');
-const path = require('path');
-const _ = require('lodash');
 
 async function getConfig() {
     const configFileName = 'config.json';
@@ -35,7 +33,7 @@ function beginSync(config) {
             return;
         }
 
-        var processBatch = function (containerName, continuationToken = null) {
+        let processBatch = function (containerName, continuationToken = null) {
 
             return new Promise(function (resolve, reject) {
 
@@ -78,10 +76,10 @@ function beginSync(config) {
 
                             debugDirectory(`Found the first ${result.entries.length} items in container ${containerName}`);
 
-                            _.forEach(result.entries, function (blobResult) {
+                            result.entries.forEach( blobResult => {
                                 //debug(`Examining ${blobResult.name} (${blobResult.properties['content-type']} ${blobResult.properties['content-length']} bytes)`);
 
-                                var localFilePath = `${storeDirectory}${blobResult.name}`;
+                                let localFilePath = `${storeDirectory}${blobResult.name}`;
 
                                 queue = queue.then(() => {
                                     return new Promise((downloadFinished, downloadFailed) => {
@@ -142,9 +140,9 @@ function beginSync(config) {
 
         };
 
-        var batchQueue = Promise.resolve();
+        let batchQueue = Promise.resolve();
 
-        _.forEach(result.entries, function (containerResult) {
+        result.entries.forEach(containerResult => {
             if (containerResult.name === '$root') {
                 debug('Skipping root container.');
                 return;
