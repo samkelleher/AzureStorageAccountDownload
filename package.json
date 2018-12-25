@@ -2,24 +2,23 @@
   "name": "AzureStorageAccountDownload",
   "version": "1.0.0",
   "description": "A utility to download an Azure container to your machine.",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
-    "start": "DEBUG=* node index",
-    "lint": "eslint index.js"
+    "start": "DEBUG=* node --experimental-modules index",
+    "lint": "eslint index.mjs --ext=mjs"
   },
   "private": true,
   "engines": {
-    "node": ">=7.6"
+    "node": ">=11"
   },
-  "keywords": [],
   "author": "Sam Kelleher",
   "license": "ISC",
   "dependencies": {
     "azure-storage": "^2.10.2",
-    "debug": "^4.1.0",
+    "debug": "^4.1.1",
     "superagent": "^4.0.0"
   },
   "devDependencies": {
-    "eslint": "^5.9.0"
+    "eslint": "^5.11.0"
   }
 }

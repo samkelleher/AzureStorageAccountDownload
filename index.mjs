@@ -1,11 +1,11 @@
-'use strict';
+import azure from 'azure-storage';
+import fs from 'fs';
+import debug from 'debug';
 
-const azure = require('azure-storage');
-const debug = require('debug')('Controller');
-const debugFile = require('debug')('RemoteFile');
-const debugDirectory = require('debug')('Directory');
-const debugLocalFile = require('debug')('LocalFile');
-const fs = require('fs');
+const debugController = debug('Controller');
+const debugFile = debug('RemoteFile');
+const debugDirectory = debug('Directory');
+const debugLocalFile = debug('LocalFile');
 
 async function getConfig() {
     const configFileName = 'config.json';
@@ -27,9 +27,8 @@ function beginSync(config) {
     const blobService = azure.createBlobService(config.storageAccountName, config.storageAccountKey);
 
     blobService.listContainersSegmented(null, {}, function (error, result) {
-
         if (error) {
-            debug('Get Containers Error: ', error);
+            debugController('Get Containers Error: ', error);
             return;
         }
 
@@ -43,9 +42,9 @@ function beginSync(config) {
 
                     if (err) {
                         if (err.code === 'ENOENT') {
-                            debug(`Container ${containerName} does not exist locally, will not sync this container, create the folder if you want to sync it.`);
+                            debugController(`Container ${containerName} does not exist locally, will not sync this container, create the folder if you want to sync it.`);
                         } else {
-                            debug('Unable to load local container ${containerName} directory', err);
+                            debugController('Unable to load local container ${containerName} directory', err);
                         }
                         resolve();
                         return;
@@ -53,12 +52,12 @@ function beginSync(config) {
 
                     fs.readdir(storeDirectory, (err, files) => {
 
-                        debug(`${storeDirectoryStats.isSymbolicLink() ? 'Symbolic ' : ''}Container ${containerName} found, it contains ${files.length} files, and will now sync...`);
+                        debugController(`${storeDirectoryStats.isSymbolicLink() ? 'Symbolic ' : ''}Container ${containerName} found, it contains ${files.length} files, and will now sync...`);
 
                         blobService.listBlobsSegmented(containerName, continuationToken, {maxResults: 5000}, (error, result) => {
 
                             if (error) {
-                                debug(`Get Blobs Error (${containerName}):`, error);
+                                debugController(`Get Blobs Error (${containerName}):`, error);
                                 reject();
                                 return;
                             }
@@ -72,12 +71,12 @@ function beginSync(config) {
                                 containerName
                             };
 
-                            // debug(`Blobs in ${containerResult.name}`, result.entries);
+                            // debugController(`Blobs in ${containerResult.name}`, result.entries);
 
                             debugDirectory(`Found the first ${result.entries.length} items in container ${containerName}`);
 
                             result.entries.forEach( blobResult => {
-                                //debug(`Examining ${blobResult.name} (${blobResult.properties['content-type']} ${blobResult.properties['content-length']} bytes)`);
+                                //debugController(`Examining ${blobResult.name} (${blobResult.properties['content-type']} ${blobResult.properties['content-length']} bytes)`);
 
                                 let localFilePath = `${storeDirectory}${blobResult.name}`;
 
@@ -144,7 +143,7 @@ function beginSync(config) {
 
         result.entries.forEach(containerResult => {
             if (containerResult.name === '$root') {
-                debug('Skipping root container.');
+                debugController('Skipping root container.');
                 return;
             }
 
@@ -178,13 +177,12 @@ function beginSync(config) {
                     });
             });
 
-            debug(`Queued up ${containerResult.name}`);
+            debugController(`Queued up ${containerResult.name}`);
 
         });
 
-
         batchQueue.then(() => {
-            debug('All finished.');
+            debugController('All finished.');
         });
     });
 }
@@ -194,6 +192,6 @@ function beginSync(config) {
         const config = await getConfig();
         beginSync(config);
     } catch (e) {
-        debug(e);
+        debugController(e);
     }
 })();
