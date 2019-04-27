@@ -2,6 +2,7 @@ import azure from 'azure-storage';
 import fs from 'fs';
 import debug from 'debug';
 
+const fsPromises = fs.promises;
 const debugController = debug('Controller');
 const debugFile = debug('RemoteFile');
 const debugDirectory = debug('Directory');
@@ -9,12 +10,25 @@ const debugLocalFile = debug('LocalFile');
 
 async function getConfig() {
     const configFileName = 'config.json';
-    if (!fs.existsSync(configFileName)) {
-        throw new Error(`The config file '${configFileName}' was not found.`);
+
+    let file;
+    try {
+        file = await fsPromises.readFile(configFileName);
+    } catch (fileReadError) {
+        if (fileReadError.code === 'ENOENT') {
+            throw new Error(`The config file '${configFileName}' does not exist.`);
+            return;
+        }
+        throw new Error(`The config file '${configFileName}' could not be read.`, fileReadError);
+        console.log(fileReadError);
     }
 
-    const file = fs.readFileSync(configFileName);
-    const config = JSON.parse(file);
+    let config;
+    try {
+        config = JSON.parse(file)
+    } catch (fileParseError) {
+        throw new Error(`The config file '${configFileName}' could not be parsed.`, fileParseError);
+    }
 
     if (!config || !config.storageAccountName || !config.storageAccountKey) {
         throw new Error(`The config file '${configFileName}' has missing data.`);
