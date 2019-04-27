@@ -4,7 +4,7 @@
   "description": "A utility to download an Azure container to your machine.",
   "main": "index.mjs",
   "scripts": {
-    "start": "DEBUG=* node --experimental-modules index",
+    "start": "DEBUG=* node --experimental-modules index.mjs",
     "lint": "eslint index.mjs --ext=mjs"
   },
   "private": true,
