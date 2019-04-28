@@ -34,6 +34,12 @@ $ yarn start
 
 Each time you run this utility, a full sync will take place. So if you have a lot of files can take some time.
 
+## Features
+  - Uses native ECMAScript Modules in Node (ESM)
+  - Uses native async/await
+  - No Babel or transpile step, raw ECMAScript.
+  - Uses latest generation Azure Storage SDKs
+
 ## User Story
 I have a CMS website that stores user uploaded images to a storage
 account on Azure. When I am working offline (such as on a long flight) I
