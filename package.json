@@ -14,7 +14,7 @@
   "author": "Sam Kelleher",
   "license": "ISC",
   "dependencies": {
-    "azure-storage": "^2.10.3",
+    "@azure/storage-blob": "^10.3.0",
     "debug": "^4.1.1"
   },
   "devDependencies": {
