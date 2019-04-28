@@ -1,6 +1,7 @@
-import azure from 'azure-storage';
+import Azure from '@azure/storage-blob';
 import fs from 'fs';
 import debug from 'debug';
+import getConfig from './getConfig';
 
 const fsPromises = fs.promises;
 const debugController = debug('Controller');
@@ -8,204 +9,137 @@ const debugFile = debug('RemoteFile');
 const debugDirectory = debug('Directory');
 const debugLocalFile = debug('LocalFile');
 
-async function getConfig() {
-    const configFileName = 'config.json';
+async function getContainers(serviceURL) {
+    let marker;
+    let containers = [];
+    do {
+        const listContainersResponse = await serviceURL.listContainersSegment(
+            Azure.Aborter.none,
+            marker
+        );
 
-    let file;
-    try {
-        file = await fsPromises.readFile(configFileName);
-    } catch (fileReadError) {
-        if (fileReadError.code === 'ENOENT') {
-            throw new Error(`The config file '${configFileName}' does not exist.`);
-            return;
-        }
-        throw new Error(`The config file '${configFileName}' could not be read.`, fileReadError);
-        console.log(fileReadError);
-    }
+        marker = listContainersResponse.nextMarker;
+        containers = [
+            ...containers,
+            ...listContainersResponse.containerItems
+        ]
 
-    let config;
-    try {
-        config = JSON.parse(file)
-    } catch (fileParseError) {
-        throw new Error(`The config file '${configFileName}' could not be parsed.`, fileParseError);
-    }
-
-    if (!config || !config.storageAccountName || !config.storageAccountKey) {
-        throw new Error(`The config file '${configFileName}' has missing data.`);
-    }
-
-    return config;
+    } while (marker);
+    return containers;
 }
 
-function beginSync(config) {
-    const blobService = azure.createBlobService(config.storageAccountName, config.storageAccountKey);
+async function beginSync({ storageAccountName, storageAccountKey, storeDirectory, logDownloadsOnly }) {
+    const sharedKeyCredential = new Azure.SharedKeyCredential(storageAccountName, storageAccountKey);
+    const pipeline = Azure.StorageURL.newPipeline(sharedKeyCredential);
 
-    blobService.listContainersSegmented(null, {}, function (error, result) {
-        if (error) {
-            debugController('Get Containers Error: ', error);
+    const serviceURL = new Azure.ServiceURL(
+        `https://${storageAccountName}.blob.core.windows.net`,
+        pipeline
+    );
+
+    const containers = await getContainers(serviceURL);
+
+    let processBatch = async function (container, continuationToken = null) {
+        const storeDirectoryWithContainer = `${storeDirectory}${storageAccountName}/${container.name}/`;
+
+        let storeDirectoryStats;
+        try {
+            storeDirectoryStats = await fsPromises.lstat(storeDirectoryWithContainer);
+        } catch (ex) {
+            if (ex.code === 'ENOENT') {
+                debugController(`Container ${container.name} does not exist locally, will not sync this container, create the folder if you want to sync it.`);
+            } else {
+                debugController(`Unable to load local container ${container.name} directory.`, ex);
+            }
             return;
         }
 
-        let processBatch = function (containerName, continuationToken = null) {
+        const files = await fsPromises.readdir(storeDirectoryWithContainer);
+        debugController(`${storeDirectoryStats.isSymbolicLink() ? 'Symbolic ' : ''}Container ${container.name} found, it contains ${files.length} files, and will now sync...`);
 
-            return new Promise(function (resolve, reject) {
+        const containerURL = Azure.ContainerURL.fromServiceURL(serviceURL, container.name);
 
-                const storeDirectory = `${config.storeDirectory}${config.storageAccountName}/${containerName}/`;
+        let marker;
+        let localCopiesAlreadyExisted = 0;
+        do {
+            const listBlobsResponse = await containerURL.listBlobFlatSegment(
+                Azure.Aborter.none,
+                marker
+            );
 
-                fs.lstat(storeDirectory, (err, storeDirectoryStats) => {
+            marker = listBlobsResponse.nextMarker;
+            for (const blob of listBlobsResponse.segment.blobItems) {
+                console.log(`Blob: ${blob.name}`);
 
-                    if (err) {
-                        if (err.code === 'ENOENT') {
-                            debugController(`Container ${containerName} does not exist locally, will not sync this container, create the folder if you want to sync it.`);
-                        } else {
-                            debugController('Unable to load local container ${containerName} directory', err);
-                        }
-                        resolve();
+                let localFilePath = `${storeDirectory}${blob.name}`;
+
+                try {
+                    await fsPromises.access(localFilePath);
+                } catch (err) {
+                    if (err.code !== 'ENOENT') {
+                        debugFile(`${blob.name} > ${localFilePath} - ERROR: `, err);
+                    }
+                    continue;
+                }
+
+                debugFile(`${blob.name} > ${localFilePath} - TODO`);
+                const downloadBlockBlobResponse = await blob.download(Azure.Aborter.none, 0);
+
+                continue;
+
+                blobService.getBlobToStream(container.name, blob.name, fs.createWriteStream(localFilePath), {}, function (error, result, response) {
+                    if (error) {
+                        debugFile(`${blob.name} > ${localFilePath} - FAILED`, err);
+                        downloadFinished();
                         return;
                     }
-
-                    fs.readdir(storeDirectory, (err, files) => {
-
-                        debugController(`${storeDirectoryStats.isSymbolicLink() ? 'Symbolic ' : ''}Container ${containerName} found, it contains ${files.length} files, and will now sync...`);
-
-                        blobService.listBlobsSegmented(containerName, continuationToken, {maxResults: 5000}, (error, result) => {
-
-                            if (error) {
-                                debugController(`Get Blobs Error (${containerName}):`, error);
-                                reject();
-                                return;
-                            }
-
-                            let queue = Promise.resolve();
-
-                            const resolution = {
-                                continuationToken: result.continuationToken,
-                                queue: queue,
-                                localCopiesAlreadyExisted: 0,
-                                containerName
-                            };
-
-                            // debugController(`Blobs in ${containerResult.name}`, result.entries);
-
-                            debugDirectory(`Found the first ${result.entries.length} items in container ${containerName}`);
-
-                            result.entries.forEach( blobResult => {
-                                //debugController(`Examining ${blobResult.name} (${blobResult.properties['content-type']} ${blobResult.properties['content-length']} bytes)`);
-
-                                let localFilePath = `${storeDirectory}${blobResult.name}`;
-
-                                queue = queue.then(() => {
-                                    return new Promise((downloadFinished, downloadFailed) => {
-                                        fs.access(localFilePath, fs.F_OK, function (err, stats) {
-                                            if (err) {
-                                                if (err.code === 'ENOENT') {
-                                                    debugFile(`${blobResult.name} > ${localFilePath} - TODO`);
-
-                                                    blobService.getBlobToStream(containerName, blobResult.name, fs.createWriteStream(localFilePath), {}, function (error, result, response) {
-                                                        if (error) {
-                                                            debugFile(`${blobResult.name} > ${localFilePath} - FAILED`, err);
-                                                            downloadFinished();
-                                                            return;
-                                                        }
-                                                        debugFile(`${blobResult.name} > ${localFilePath} - COMPLETE - SUCCESS = ${response.isSuccessful}`);
-                                                        downloadFinished();
-                                                    });
-
-                                                } else {
-                                                    debugFile(`${blobResult.name} > ${localFilePath} - ERROR: `, err);
-                                                    downloadFinished();
-                                                }
-                                                return;
-                                            }
-
-                                            if (!config.logDownloadsOnly) {
-                                                debugLocalFile(`${blobResult.name} > ${localFilePath} - EXISTS `);
-                                            }
-                                            resolution.localCopiesAlreadyExisted += 1;
-
-                                            downloadFinished();
-                                        });
-                                    });
-                                });
-
-                            });
-
-                            queue = queue.then(() => {
-                                if (resolution.localCopiesAlreadyExisted > 0) {
-                                    debugDirectory(`${resolution.localCopiesAlreadyExisted} local files already existed.`);
-                                }
-                                return Promise.resolve();
-                            });
-
-                            if (result.continuationToken) {
-                                debugDirectory(`There are additional results still to load for container ${containerName}.`)
-                            }
-
-                            resolve(resolution);
-
-                        });
-                    });
-
+                    debugFile(`${blob.name} > ${localFilePath} - COMPLETE - SUCCESS = ${response.isSuccessful}`);
+                    downloadFinished();
                 });
-
-            });
-
-
-        };
-
-        let batchQueue = Promise.resolve();
-
-        result.entries.forEach(containerResult => {
-            if (containerResult.name === '$root') {
-                debugController('Skipping root container.');
-                return;
             }
+        } while (marker);
 
+        if (localCopiesAlreadyExisted > 0) {
+            debugDirectory(`${localCopiesAlreadyExisted} local files already existed for ${container.name}.`);
+        }
+    };
 
-            const processBatchQueueItem = (containerName, continuationToken = null) => {
+    const processBatchQueueItem = async (container, continuationToken = null) => {
+        return processBatch(container, continuationToken)
+            .then(function (batchResults) {
+                if (!batchResults) {
+                    debugDirectory(`Finished ${container.name}, but no results...`);
+                    return Promise.resolve();
+                }
+                if (batchResults.continuationToken) {
+                    debugDirectory(`Staring next batch for ${container.name}`);
+                    return processBatchQueueItem(container, batchResults.continuationToken);
+                } else {
+                    debugDirectory(`Finished ${container.name}`);
+                    return Promise.resolve();
+                }
+            })
+    };
 
-                return processBatch(containerName, continuationToken)
-                    .then(function (batchResults) {
-                        if (!batchResults) {
-                            debugDirectory(`Finished ${batchResults.containerName}, but no results...`);
-                            return Promise.resolve();
-                        }
-                        if (batchResults.continuationToken) {
-                            debugDirectory(`Staring next batch for ${batchResults.containerName}`);
-                            return processBatchQueueItem(containerName, batchResults.continuationToken);
-                        } else {
-                            debugDirectory(`Finished ${batchResults.containerName}`);
-                            return Promise.resolve();
-                        }
-                    })
-            };
+    for (const container of containers) {
+        if (container.name === '$root') {
+            debugController('Skipping root container.');
+            continue;
+        }
 
-            batchQueue = batchQueue.then(() => {
+        debugDirectory(`Starting ${container.name}`);
 
-                debugDirectory(`Starting ${containerResult.name}`);
+        try {
+            await processBatchQueueItem(container)
+        } catch (ex) {
+            debugDirectory(`Failed ${container.name}`, ex);
+            continue;
+        }
+    }
 
-                return processBatchQueueItem(containerResult.name)
-                    .catch(() => {
-                        debugDirectory(`Failed ${containerResult.name}`);
-                        return Promise.resolve();
-                    });
-            });
-
-            debugController(`Queued up ${containerResult.name}`);
-
-        });
-
-        batchQueue.then(() => {
-            debugController('All finished.');
-        });
-    });
+    debugController('All finished.');
 }
 
-(async function() {
-    try {
-        const config = await getConfig();
-        beginSync(config);
-    } catch (e) {
-        debugController(e);
-    }
-})();
+getConfig()
+    .then(config => beginSync(config))
+    .catch(error => { throw error });
