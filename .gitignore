@@ -1,8 +1,5 @@
 # Confidential Config file
-config.json
+.env
 
 # Dependency directory
 node_modules
-
-## Directory-based project format:
-.idea/

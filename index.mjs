@@ -131,6 +131,6 @@ async function beginSync({ storageAccountName, storageAccountKey, storeDirectory
     debugController('All finished.');
 }
 
-getConfig()
-    .then(config => beginSync(config))
+beginSync(getConfig())
+    .then(() => { console.log('Finished') })
     .catch(error => { throw error });

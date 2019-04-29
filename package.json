@@ -1,10 +1,10 @@
 {
-  "name": "AzureStorageAccountDownload",
-  "version": "1.0.0",
-  "description": "A utility to download an Azure container to your machine.",
+  "name": "azure-container-sync",
+  "version": "1.2.0",
+  "description": "A utility to download entire Azure containers to your machine.",
   "main": "index.mjs",
   "scripts": {
-    "start": "DEBUG=*,-follow-redirects node --experimental-modules index.mjs",
+    "start": "DEBUG=*,-follow-redirects node --experimental-modules -r dotenv/config index.mjs",
     "lint": "eslint index.mjs --ext=mjs"
   },
   "private": true,
@@ -15,7 +15,9 @@
   "license": "ISC",
   "dependencies": {
     "@azure/storage-blob": "^10.3.0",
-    "debug": "^4.1.1"
+    "debug": "^4.1.1",
+    "dotenv": "^7.0.0",
+    "envalid": "^5.0.0"
   },
   "devDependencies": {
     "eslint": "^5.16.0"

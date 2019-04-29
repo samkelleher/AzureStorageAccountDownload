@@ -1,6 +1,0 @@
-{
-  "storageAccountName": "< YOUR-ACCOUNT NAME HERE >",
-  "storageAccountKey": "< YOUR KEY HERE >",
-  "storeDirectory": "< PATH TO LOCAL STORAGE DIRECTORY (for example '../AzureContainers/') >",
-  "logDownloadsOnly": true
-}
