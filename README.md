@@ -4,18 +4,18 @@
 This is a litte dev utiility that will connect to an Azure container, and download a mirror of it to your local machine. Handy during development of an image store for example so you can work offline.
 
 ## Getting Started
-After cloning this repository run `yarn install --production` to grab its dependencies.
+After cloning this repository run `yarn` to grab its dependencies, then after setting config, `yarn start`.
 
 ## Set Config information
-To keep the container credentials out of source code, they are kept in a seperate `config.json` file:
+To keep the container credentials out of source code, they are read from the environment, or you can source them
+by setting them in the `.env` file. If you don't the application will not run.
+
+Copy the `.env.example` file to `.env` and fill in your values to get started, or set them in the environment.
 
 ```
-{
-  "storageAccountName": "<YOUR-ACCOUNT-NAME-HERE>",
-  "storageAccountKey": "<YOUR-KEY-HERE>",
-  "storeDirectory": "< PATH TO LOCAL STORAGE DIRECTORY (for example '../AzureContainers/') >",
-  "logDownloadsOnly": true
-}
+AZURE_ACCOUNT_NAME=< YOUR-ACCOUNT NAME HERE >
+AZURE_ACCOUNT_KEY=< YOUR KEY HERE >
+AZURE_DIRECTORY:< PATH TO LOCAL STORAGE DIRECTORY (for example '../AzureContainers/') >
 ```
 
 In your store directory, create folders here manually that match the names of folders you want to download. For example,
