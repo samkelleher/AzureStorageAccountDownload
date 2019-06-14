@@ -1,6 +1,6 @@
 import Azure from '@azure/storage-blob';
-import getContainers from './getContainers';
-import processContainer from './processContainer';
+import getContainers from './getContainers.mjs';
+import processContainer from './processContainer.mjs';
 import debug from 'debug';
 
 const debugController = debug('Controller');

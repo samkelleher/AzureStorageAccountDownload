@@ -2,14 +2,14 @@
   "name": "azure-container-sync",
   "version": "1.2.0",
   "description": "A utility to download entire Azure containers to your machine.",
-  "main": "index.mjs",
+  "module": "index.mjs",
   "scripts": {
-    "start": "DEBUG=*,-follow-redirects node --experimental-modules -r dotenv/config index.mjs",
+    "start": "DEBUG=*,-follow-redirects node --experimental-modules --no-warnings -r ./node_modules/dotenv/config.js index.mjs",
     "lint": "eslint index.mjs --ext=mjs"
   },
   "private": true,
   "engines": {
-    "node": ">=11"
+    "node": ">=12"
   },
   "author": "Sam Kelleher",
   "license": "ISC",

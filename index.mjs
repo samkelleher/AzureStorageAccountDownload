@@ -1,5 +1,5 @@
-import getConfig from './getConfig';
-import beginSync from './beginSync';
+import getConfig from './getConfig.mjs';
+import beginSync from './beginSync.mjs';
 
 beginSync(getConfig())
     .then(() => { console.log('Finished') })
