@@ -4,7 +4,7 @@
   "description": "A utility to download entire Azure containers to your machine.",
   "module": "index.mjs",
   "scripts": {
-    "start": "DEBUG=*,-follow-redirects node --experimental-modules --no-warnings -r ./node_modules/dotenv/config.js index.mjs",
+    "start": "DEBUG=*,-follow-redirects node -r ./node_modules/dotenv/config.js index.mjs",
     "lint": "eslint index.mjs --ext=mjs"
   },
   "private": true,
@@ -16,10 +16,10 @@
   "dependencies": {
     "@azure/storage-blob": "^10.3.0",
     "debug": "^4.1.1",
-    "dotenv": "^7.0.0",
-    "envalid": "^5.0.0"
+    "dotenv": "^8.2.0",
+    "envalid": "^6.0.1"
   },
   "devDependencies": {
-    "eslint": "^5.16.0"
+    "eslint": "^6.8.0"
   }
 }
